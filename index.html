@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Seat Shuffler</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #111;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 1.8em;
+    }
+
+    .seating-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      max-width: 600px;
+    }
+
+    .bench {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .tile {
+      flex: 1;
+      min-width: 0;
+      height: 45px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      padding: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      overflow-wrap: break-word;
+    }
+
+    .boy {
+      background-color: #3498db;
+    }
+
+    .girl {
+      background-color: #e91e63;
+    }
+
+    button {
+      margin: 10px 5px;
+      padding: 10px 15px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #controls {
+      margin-top: 10px;
+    }
+
+    @media screen and (max-width: 768px) {
+      .seating-container {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .bench {
+        flex-direction: row;
+      }
+
+      .tile {
+        font-size: 11px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 10px;">
+    <img src="vdps.png" alt="School Logo" style="height: 80px; width: 80px; border-radius: 20px;">
+    <h1>Seat Shuffler</h1>
+  </div>
+
+  <div id="seat-layout" class="seating-container">
+    <div class="side" id="boys-side"></div>
+    <div class="side" id="girls-side"></div>
+  </div>
+
+  <div id="controls">
+    <button onclick="shuffleSeats()">🔁 Shuffle Seats</button>
+    <button onclick="downloadImage()">📸 Save as JPG</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <script>
+    let boys = [
+      "NIRANJAN VS", "AZAD", "DEVADHATHAN", "ADON", "SREEHARI", "JEROME", "ASHLIN", "ALI", "BASIL",
+      "ALAN", "YUVANESH", "JONATHAN", "ASHER", "JOSE", "ABHRAHAM", "NIRMAL", "ALPHY",
+      "NIRANJAN R NAIR", "SOORAJ", "BLAINE", "DION", "AKSHAY"
+    ];
+
+    const girls = [
+      "DURGA", "DIYONA M", "SANOSHA", "ANN MARIYA", "ALEENA", "NANDHITHA", "SONA", "NIDHI",
+      "AMEEKHA", "GOURI", "SOUMITHRA", "ASSIN", "DIYONA J", "RIZA", "NIMI", "EON", "ARADHYA",
+      "BEAUNA", "ALPHA", "LISS MARIYA", "RICHA", "ANNA PETER", "RIYA", "ANNA ANEESH"
+    ];
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function createBenches(names, sideId, groupClass, pattern, avoidRightmostName) {
+      const container = document.getElementById(sideId);
+      container.innerHTML = '';
+      let index = 0;
+
+      for (let i = 0; i < pattern.length; i++) {
+        const benchSize = pattern[i];
+        const bench = document.createElement("div");
+        bench.className = "bench";
+
+        let benchNames = names.slice(index, index + benchSize);
+
+        // Avoid ALPHY on rightmost seat
+        if (avoidRightmostName && benchNames[benchSize - 1] === avoidRightmostName) {
+          for (let j = 0; j < benchSize - 1; j++) {
+            if (benchNames[j] !== avoidRightmostName) {
+              [benchNames[j], benchNames[benchSize - 1]] = [benchNames[benchSize - 1], benchNames[j]];
+              break;
+            }
+          }
+        }
+
+        for (let j = 0; j < benchSize; j++) {
+          const name = benchNames[j] || "";
+          const tile = document.createElement("div");
+          tile.className = `tile ${groupClass}`;
+          tile.textContent = name;
+          bench.appendChild(tile);
+        }
+
+        container.appendChild(bench);
+        index += benchSize;
+      }
+    }
+
+    function shuffleSeats() {
+      let boysShuffled = [...boys];
+      let girlsShuffled = [...girls];
+      shuffleArray(boysShuffled);
+      shuffleArray(girlsShuffled);
+
+      createBenches(boysShuffled, "boys-side", "boy", [3, 3, 3, 3, 3, 3, 4], "ALPHY");
+      createBenches(girlsShuffled, "girls-side", "girl", [3, 3, 3, 3, 4, 4, 4]);
+    }
+
+    function downloadImage() {
+      const layout = document.getElementById("seat-layout");
+      html2canvas(layout).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `SeatLayout-${new Date().toISOString().slice(0,10)}.jpg`;
+        link.href = canvas.toDataURL("image/jpeg");
+        link.click();
+      });
+    }
+
+    window.onload = shuffleSeats;
+  </script>
+</body>
+</html>
